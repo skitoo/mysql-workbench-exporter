@@ -1,30 +1,14 @@
 
+from mworkbenchexporter.exporter.doctrine2.annotation import Doctrine2AnnotationExporter
 
 
+DOCTRINE2_ANNOTATION = 'doctrine2:annotation'
 
-class ExporterOutput(object):
-    def __init__(self, filename):
-        self.output = open(filename, "w")
-        
-    def write_line(self, data, indentation=0):
-        self.output.write(" " * 4 * indentation + data + "\n")
-        
-    def write_blank_line(self):
-        self.write_line("")
-        
-    def write(self, data, indentation=0):
-        self.output.write(" " * 4 * indentation + data)
-        
-    def close(self):
-        self.output.close()
-        
-        
-        
-class Exporter(object):
-    def __init__(self, data, output, verbose=False):
-        self.data = data
-        self.output = output
-        self.verbose = verbose
-        
-    def export(self):
-        pass
+
+def get_exporter(engine):
+    if engine == DOCTRINE2_ANNOTATION:
+        return Doctrine2AnnotationExporter
+    else:
+        return None
+
+

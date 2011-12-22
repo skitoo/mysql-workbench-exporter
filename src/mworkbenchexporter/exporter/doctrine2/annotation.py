@@ -1,11 +1,10 @@
 
 from mworkbenchexporter.exporter.doctrine2 import TYPES_TABLE_CONVERSION
-from mworkbenchexporter.exporter import ExporterOutput, Exporter
+from mworkbenchexporter.exporter.common import ExporterOutput, Exporter
 from mworkbenchexporter.utils import lower_camel_case, camel_case, pluralize
 import os, sys
 
 
-        
 
 class Doctrine2AnnotationExporter(Exporter):
     def export(self):

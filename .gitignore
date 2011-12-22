@@ -2,3 +2,4 @@
 .pydevproject
 output
 *.pyc
+test
