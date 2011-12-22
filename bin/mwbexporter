@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+
+import sys, os
+
+sys.path.append('../src')
+
+from mworkbenchexporter.parser.mwbfile import MWBFileParser, is_valid_mwb_file
+from mworkbenchexporter.exporter.doctrine2.annotation import Doctrine2AnnotationExporter
+from mworkbenchexporter import __version__
+
+from optparse import OptionParser
+
+
+def main():
+    option_parser = OptionParser('mwbexporter [options] [input_file.mwb] [output_directory]', version='%prog v' + __version__)
+    option_parser.add_option('-e', '--engine', default='doctrine2_annotation', help='specify engine output (doctrine2_annotation, doctrine2_yml)')
+    option_parser.add_option('-v', '--verbose', action="store_true", default=False, help='display lots of noise')
+    options_instance, args = option_parser.parse_args()
+    
+    if len(args) != 2:
+        option_parser.print_help()
+        option_parser.exit(2, 'error: input mwb file and output directory must be specified\n')
+        
+    mwbfile_path = os.path.abspath(args[0])
+    output_path  = os.path.abspath(args[1])
+    
+    if not os.path.exists(mwbfile_path):
+        option_parser.error('input file "%s" does not exist'%mwbfile_path)
+    if not os.path.exists(output_path):
+        option_parser.error('output directory "%s" does not exist'%output_path)
+    if not is_valid_mwb_file(mwbfile_path):
+        option_parser.error('"%s" is not a valid MySQLWorkBench file.'%mwbfile_path)
+    
+    if options_instance.verbose:
+        sys.stdout.write('parse %s file ... '%os.path.basename(mwbfile_path))
+    parser = MWBFileParser(mwbfile_path)
+    data = parser.parse()
+    if options_instance.verbose:
+        sys.stdout.write('OK\n')
+    if options_instance.engine == 'doctrine2_annotation':
+        exporter = Doctrine2AnnotationExporter(data, output_path, options_instance.verbose)
+    else:
+        option_parser.print_help()
+        option_parser.exit(2, 'error: "%s" is an invalid ENGINE value\n'%options_instance.engine)
+    exporter.export()
+    sys.stdout.write('%s files built with success\n'%len(data))
+    
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit('Keyboard interrupt')
+
+

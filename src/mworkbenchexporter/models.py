@@ -49,3 +49,15 @@ class Column(object):
     
 
 
+class ManyToManyConnection(object):
+    def __init__(self, join_table, owner_table, target_table, join_column, owner_column, mapped):
+        self.join_table = join_table
+        self.owner_table = owner_table
+        self.target_table = target_table
+        self.join_column = join_column
+        self.owner_column = owner_column
+        self.target_many_to_many = None
+        self.is_mapped = mapped
+        
+        
+        

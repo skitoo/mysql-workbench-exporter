@@ -1,7 +1,20 @@
 
-from zipfile import ZipFile
+from zipfile import ZipFile, BadZipfile
 from xml.etree.ElementTree import XML
-from mworkbenchexporter.models import Column, Index, Table
+from mworkbenchexporter.models import Column, Index, Table, ManyToManyConnection
+
+
+def is_valid_mwb_file(path):
+    try:
+        f = ZipFile(path, "r")
+        data = f.read('document.mwb.xml')
+        XML(data)
+        f.close()
+    except BadZipfile:
+        return False
+    except KeyError:
+        return False
+    return True
 
 
 class MWBFileParser(object):
@@ -52,9 +65,11 @@ class MWBFileParser(object):
                 t.indexes.append(i)
                 columns = index.find("./value[@key='columns']")
                 is_primary = bool(int(index.find("./value[@key='isPrimary']").text))
+                is_unique = bool(int(index.find("./value[@key='unique']").text))
                 for column in columns:
                     col = cols[column.find("./link[@key='referencedColumn']").text]
                     col.is_primary = is_primary
+                    col.unique = is_unique
                     i.columns.append(col)
         
         
@@ -73,6 +88,12 @@ class MWBFileParser(object):
                 fk2 = table.foreign_keys[1]
                 fk1.referenced_column.table.foreign_key_targets.remove(fk1)
                 fk2.referenced_column.table.foreign_key_targets.remove(fk2)
+                fk1_many_to_many = ManyToManyConnection(table, fk1.referenced_column.table, fk2.referenced_column.table, fk1, fk1.referenced_column, True)
+                fk2_many_to_many = ManyToManyConnection(table, fk2.referenced_column.table, fk1.referenced_column.table, fk2, fk2.referenced_column, False)
+                fk1_many_to_many.target_many_to_many = fk2_many_to_many
+                fk2_many_to_many.target_many_to_many = fk1_many_to_many
+                fk1.referenced_column.table.many_to_many_connections.append(fk1_many_to_many)
+                fk2.referenced_column.table.many_to_many_connections.append(fk2_many_to_many)
                 result.remove(table)
         return result
 

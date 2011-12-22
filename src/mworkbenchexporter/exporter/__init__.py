@@ -21,9 +21,10 @@ class ExporterOutput(object):
         
         
 class Exporter(object):
-    def __init__(self, data, output):
+    def __init__(self, data, output, verbose=False):
         self.data = data
         self.output = output
+        self.verbose = verbose
         
     def export(self):
         pass
