@@ -3,3 +3,6 @@
 output
 *.pyc
 test
+build
+dist
+mysql_workbench_exporter.egg-info
