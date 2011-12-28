@@ -3,7 +3,7 @@
 import sys, os
 
 from mworkbenchexporter.parser.mwbfile import MWBFileParser, is_valid_mwb_file
-from mworkbenchexporter.exporter import get_exporter, DOCTRINE2_ANNOTATION
+from mworkbenchexporter.exporter import get_exporter, ENGINES_LIST, DOCTRINE2_ANNOTATION
 from mworkbenchexporter import __version__
 from optparse import OptionParser
 
@@ -11,9 +11,16 @@ from optparse import OptionParser
 def main():
     option_parser = OptionParser('mwbexporter [options] [input_file.mwb] [output_directory]', version='%prog v' + __version__)
     option_parser.add_option('-e', '--engine', default=DOCTRINE2_ANNOTATION, help='specify engine output. Default ' + DOCTRINE2_ANNOTATION)
+    option_parser.add_option('-l', '--list', action="store_true", help='display available engines list')
     option_parser.add_option('-v', '--verbose', action="store_true", default=False, help='display lots of noise')
     options_instance, args = option_parser.parse_args()
     
+    if options_instance.list:
+        sys.stdout.write('mwbexporter: Available engines\n')
+        for engine in ENGINES_LIST:
+            sys.stdout.write('    %s\n'%engine)
+        sys.exit(0)
+        
     if len(args) != 2:
         option_parser.print_help()
         option_parser.exit(2, 'error: input mwb file and output directory must be specified\n')
