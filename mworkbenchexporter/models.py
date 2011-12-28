@@ -37,8 +37,9 @@ class Column(object):
         self.is_foreign_key = False
         self.table = None
         
-    def define_as_foreignkey(self, referenced_column):
+    def define_as_foreignkey(self, referenced_column, is_one_to_one=False):
         self.is_foreign_key = True
+        self.is_one_to_one = is_one_to_one
         self.table.foreign_keys.append(self)
         self.table.columns.remove(self)
         self.referenced_column = referenced_column
