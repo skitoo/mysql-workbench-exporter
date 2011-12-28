@@ -1,5 +1,5 @@
 
-from mworkbenchexporter.exporter import get_exporter, DOCTRINE2_ANNOTATION
+from mworkbenchexporter.exporter import get_exporter, DOCTRINE2_ANNOTATION, DOCTRINE2_YAML
 from mworkbenchexporter.parser.mwbdata import MWBDataParser
 import mworkbenchexporter
 
@@ -20,6 +20,19 @@ def export_to_doctrine2_annotation(catalog):
         parser = MWBDataParser(catalog)
         data = parser.parse()
         Exporter = get_exporter(DOCTRINE2_ANNOTATION)
+        Exporter(data, output_path).export()
+    return 0
+
+
+@ModuleInfo.plugin("mysqlworkbenchexporter.export_to_doctrine2_yaml", caption= "Export to Doctrine 2 Yaml", input= [wbinputs.currentCatalog()], pluginMenu= "Catalog")
+@ModuleInfo.export(grt.INT, grt.classes.db_Catalog)
+def export_to_doctrine2_yaml(catalog):
+    file_chooser = FileChooser(OpenDirectory)
+    if file_chooser.run_modal():
+        output_path = file_chooser.get_path()
+        parser = MWBDataParser(catalog)
+        data = parser.parse()
+        Exporter = get_exporter(DOCTRINE2_YAML)
         Exporter(data, output_path).export()
     return 0
 
