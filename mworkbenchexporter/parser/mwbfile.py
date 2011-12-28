@@ -24,6 +24,9 @@ class MWBFileParser(object):
     def parse(self):
         f = ZipFile(self.path, "r")
         data_xml = f.read('document.mwb.xml')
+        f2 = open('data.xml', 'w')
+        f2.write(data_xml)
+        f2.close()
         tree = XML(data_xml)
         catalog = tree.find(".//value[@key='catalog']")
         tables = catalog.find(".//value[@key='tables']")
@@ -79,7 +82,8 @@ class MWBFileParser(object):
             for foreign_key in foreign_keys.getchildren():
                 owner_column =  cols[foreign_key.find("./value[@key='columns']").getchildren()[0].text]
                 referenced_column = cols[foreign_key.find("./value[@key='referencedColumns']").getchildren()[0].text]
-                owner_column.define_as_foreignkey(referenced_column)
+                is_one_to_one = not bool(int(foreign_key.find("./value[@key='many']").text))
+                owner_column.define_as_foreignkey(referenced_column, is_one_to_one)
             
         # check many to many
         for table in result:
