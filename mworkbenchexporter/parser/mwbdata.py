@@ -37,7 +37,7 @@ class MWBDataParser(object):
                 for fk in table.foreignKeys:
                     owner_column = cols_ref['%s:%s'%(table.name, fk.columns[0].name)]
                     referenced_column = cols_ref['%s:%s'%(fk.referencedTable.name, fk.referencedColumns[0].name)]
-                    owner_column.define_as_foreignkey(referenced_column)
+                    owner_column.define_as_foreignkey(referenced_column, not fk.many)
                     
         # check many to many
         for table in result:
