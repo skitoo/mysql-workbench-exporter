@@ -24,9 +24,6 @@ class MWBFileParser(object):
     def parse(self):
         f = ZipFile(self.path, "r")
         data_xml = f.read('document.mwb.xml')
-        f2 = open('data.xml', 'w')
-        f2.write(data_xml)
-        f2.close()
         tree = XML(data_xml)
         catalog = tree.find(".//value[@key='catalog']")
         tables = catalog.find(".//value[@key='tables']")
