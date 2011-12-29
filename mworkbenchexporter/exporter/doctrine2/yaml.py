@@ -29,6 +29,10 @@ class TableExporter(Exporter):
         
         primary_keys = filter(lambda c:c.is_primary, self.data.columns)
         columns = filter(lambda c:not c.is_primary, self.data.columns)
+        one_to_ones = filter(lambda c: c.is_one_to_one, self.data.foreign_keys)
+        foreign_keys = filter(lambda c: not c.is_one_to_one, self.data.foreign_keys)
+        one_to_one_targets = filter(lambda c: c.is_one_to_one, self.data.foreign_key_targets)
+        foreign_key_targets = filter(lambda c: not c.is_one_to_one, self.data.foreign_key_targets)
         
         if len(primary_keys) > 0:
             self.output.write_line('id:', 1)
@@ -39,22 +43,30 @@ class TableExporter(Exporter):
             self.output.write_line('fields:', 1)
             for column in columns:
                 ColumnExporter(column, self.output).export()
+                
+        if len(one_to_ones) > 0 or len(one_to_one_targets) > 0:
+            self.output.write_line('oneToOne:', 1)
+            for one in one_to_ones:
+                ForeignKeyExporter(one, self.output).export()
+            for one in one_to_one_targets:
+                ForeignKeyTargetExporter(one, self.output).export()
             
-        if len(self.data.foreign_keys) > 0:
+        if len(foreign_keys) > 0:
             self.output.write_line('manyToOne:', 1)
-            for foreign_key in self.data.foreign_keys:
+            for foreign_key in foreign_keys:
                 ForeignKeyExporter(foreign_key, self.output).export()
                 
-        if len(self.data.foreign_key_targets) > 0:
+        if len(foreign_key_targets) > 0:
             self.output.write_line('oneToMany:', 1)
-            for foreign_key_target in self.data.foreign_key_targets:
+            for foreign_key_target in foreign_key_targets:
                 ForeignKeyTargetExporter(foreign_key_target, self.output).export()
                 
         if len(self.data.many_to_many_connections) > 0:
             self.output.write_line('manyToMany:', 1)
             for many_to_many in self.data.many_to_many_connections:
                 ManyToManyExporter(many_to_many, self.output).export()
-                
+
+         
 class PrimaryKeyExporter(Exporter):
     def export(self):
         self.output.write_line('%s:'%self.data.name, 2)
@@ -68,6 +80,7 @@ class PrimaryKeyExporter(Exporter):
         if self.data.auto_increment:
             self.output.write_line('generator:', 3)
             self.output.write_line('strategy: AUTO', 4)
+
 
 class ColumnExporter(Exporter):
     def export(self):
@@ -83,13 +96,16 @@ class ColumnExporter(Exporter):
             self.output.write_line('unique: true', 3)
         if self.data.is_not_null:
             self.output.write_line('nullable: false', 3)    
-        
-        
+
+  
 class ForeignKeyExporter(Exporter):
     def export(self):
         self.output.write_line('%s:'%lower_camel_case(self.data.referenced_column.table.name), 2)
         self.output.write_line('targetEntity: %s'%self.data.referenced_column.table.name, 3)
-        self.output.write_line('inversedBy: %s'%pluralize(lower_camel_case(self.data.table.name)), 3)
+        if self.data.is_one_to_one:
+            self.output.write_line('inversedBy: %s'%lower_camel_case(self.data.table.name), 3)
+        else:
+            self.output.write_line('inversedBy: %s'%pluralize(lower_camel_case(self.data.table.name)), 3)
         self.output.write_line('joinColumn:', 3)
         self.output.write_line('name: %s'%self.data.name, 4)
         self.output.write_line('referencedColumnName: %s'%self.data.referenced_column.name, 4)
@@ -97,7 +113,10 @@ class ForeignKeyExporter(Exporter):
         
 class ForeignKeyTargetExporter(Exporter):
     def export(self):
-        self.output.write_line('%s:'%pluralize(lower_camel_case(self.data.table.name)), 2)
+        if self.data.is_one_to_one:
+            self.output.write_line('%s:'%lower_camel_case(self.data.table.name), 2)
+        else:
+            self.output.write_line('%s:'%pluralize(lower_camel_case(self.data.table.name)), 2)
         self.output.write_line('targetEntity: %s'%camel_case(self.data.table.name), 3)
         self.output.write_line('mappedBy: %s'%lower_camel_case(self.data.name), 3)
         
